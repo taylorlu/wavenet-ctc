@@ -1,0 +1,15 @@
+{
+    "filter_width": 2,
+    "sample_rate": 16000,
+    "dilations": [1, 2, 4, 8, 16,
+                  1, 2, 4, 8, 16,
+                  1, 2, 4, 8, 16],
+    "residual_channels": 40,
+    "dilation_channels": 256,
+    "quantization_channels": 512,
+    "skip_channels": 512,
+    "word_count": 1145,
+    "use_biases": true,
+    "scalar_input": false,
+    "initial_filter_width": 32
+}
