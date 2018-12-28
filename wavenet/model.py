@@ -419,11 +419,19 @@ class WaveNetModel(object):
             self.input_batch = input_batch
 
             raw_output = self._create_network(input_batch, None)    #(n,t,h)
+            
+            hidden_num = 256
+            cell = tf.contrib.rnn.DropoutWrapper(tf.contrib.rnn.GRUCell(hidden_num, kernel_initializer=tf.orthogonal_initializer()), output_keep_prob=0.5)
+            initial_state = cell.zero_state(input_batch.get_shape()[0], tf.float32)
+            rnn_out, last_state = tf.nn.dynamic_rnn(cell, raw_output,
+                                           sequence_length=sequence_lengths,
+                                           dtype=tf.float32,
+                                           initial_state=initial_state)
 
-            wave_output = tf.transpose(raw_output, [1, 0, 2])   #<t,n,h>
-            wave_output = tf.reshape(wave_output, (-1, self.quantization_channels)) #(t*n, h)
+            wave_output = tf.transpose(rnn_out, [1, 0, 2])   #<t,n,h>
+            wave_output = tf.reshape(wave_output, (-1, hidden_num)) #(t*n, h)
 
-            logits, probas = self._add_softmax_linear(wave_output, self.quantization_channels, self.word_count)
+            logits, probas = self._add_softmax_linear(wave_output, hidden_num, self.word_count)
             logits = tf.reshape(logits, (-1, input_batch.get_shape()[0], self.word_count))
 
             losses = warp_ctc_ops.warp_ctc_loss(logits, sequence_lengths, labels, label_lens)
